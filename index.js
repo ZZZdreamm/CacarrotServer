@@ -2,6 +2,9 @@
 const express = require("express");
 const cors = require('cors')
 const server = express();
+
+const port = 5001
+server.use(express.static('public'))
 server.use(cors({origin:true}))
 server.use(express.json())
 
@@ -36,4 +39,4 @@ server.post("/some-data", (request, response) => {
 
 
 
-server.listen(4000, ()=> console.log('dzialam'))
+server.listen(port, ()=> console.log('dzialam'))
