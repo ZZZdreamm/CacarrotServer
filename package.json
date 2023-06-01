@@ -15,7 +15,8 @@
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^4.9.8"
+    "express": "^4.9.8",
+    "socket.io": "^4.6.2"
   },
   "engines": {
     "node": "18.16.0"
