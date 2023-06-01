@@ -21,7 +21,6 @@ server.get("/some-data", (request, response) => {
     response.send({ result: "karoca" });
     // response.send("Hello world");
 });
-exports.app = functions.https.onRequest(server);
 
 server.post("/some-data", (request, response) => {
     const {data} = request.body; // Assuming you're using a body-parser or similar middleware to parse the request body
