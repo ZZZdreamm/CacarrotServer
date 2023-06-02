@@ -5,6 +5,7 @@ import createJWTToken from "./JWTToken.js"
 import {dbRef} from "./Firebase/FirebaseConfig.js"
 
 import {Server} from "socket.io"
+import { loginInDB, registerInDb } from "./Firebase/Authentication.js"
 // const express = require("express");
 // const cors = require("cors");
 
@@ -40,12 +41,30 @@ io.on("connection", (socket) => {
   })
 });
 
-app.post('/login', (req, res)=>{
-    const {data} = req.body
-    const token = createJWTToken(data)
-    dbRef.child('token').set({token:token})
-    res.send({token:token})
+app.post('/login', async (req, res)=>{
+    const {credentials} = req.body
+    const user = await loginInDB(credentials)
+    if(user.id){
+      const token = createJWTToken(credentials)
+      res.send({token:token, user:user})
+    }else{
+      res.status(400).send(new Error("Invalid login or password"))
+
+    }
 })
+
+
+app.post('/register', async (req, res)=>{
+  const {credentials} = req.body
+  const user = await registerInDb(credentials)
+  if(user.id){
+    const token = createJWTToken(credentials)
+    res.send({token:token, user:user})
+  }else{
+    res.status(400).send(new Error("There is user with that name"))
+  }
+})
+
 
 
 server.listen(port, () => console.log("dzialam"));
