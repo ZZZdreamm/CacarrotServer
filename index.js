@@ -76,6 +76,12 @@ io.on("connection", (socket) => {
   let gamecode = "";
   let host = "";
 
+  socket.on('host-reconnect', (data) => {
+    gamecode = data.code;
+    host = data.hostId;
+    setDataInDB(gamecode, true, "hostConnection");
+  })
+
   socket.on("host", (data) => {
     gamecode = data.code;
     host = data.hostId;
@@ -103,8 +109,8 @@ io.on("connection", (socket) => {
       id: 0,
       name: data.playerName,
       points: 0,
-      lastAnswer: { choosenAnswer: "", sendingTime: 0, questionNumber: 1 },
       shownComponent: "answers",
+      answers:[]
     });
     socket.emit(`joined/${gamecode}/${data.socketId}`, {
       game: game,
@@ -118,9 +124,15 @@ io.on("connection", (socket) => {
     timers(game);
   });
 
-  socket.on(`send-answer`, (data) => {
-    const pointsForAnswer = calculatePointsForAnswer(data.answer, game);
-    const prevPoints = getPlayer(game, data.playerName).points;
+  socket.on(`send-answer`, async (data) => {
+    const player = getPlayer(game, data.playerName)
+    let pointsForAnswer = 0
+    if(data.answer){
+      pointsForAnswer = calculatePointsForAnswer(data.answer, game);
+      data.answer.pointsFor = pointsForAnswer
+      await gamesRef.child(gamecode).child('players').child(`${player.id}`).child('answers').child(`${data.answer.questionNumber}`).set(data.answer)
+    }
+    const prevPoints = player.points;
     const wholePoints = prevPoints + pointsForAnswer;
     setPointsForPlayer(gamecode, data.playerName, wholePoints);
   });
