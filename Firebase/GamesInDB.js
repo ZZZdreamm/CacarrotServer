@@ -1,6 +1,6 @@
 import { gamesRef } from "./FirebaseConfig.js";
 
-export async function getGameOn(gamecode, game){
+export async function getGameOn(gamecode, game) {
   await gamesRef.child(gamecode).on("value", (snapshot) => {
     const gameVal = snapshot.val();
     if (gameVal) {
@@ -17,7 +17,7 @@ export async function getGame(gamecode) {
       game = gameVal;
     }
   });
-  return game
+  return game;
 }
 
 export async function joinGame(gamecode, player) {
@@ -63,33 +63,30 @@ export async function setPointsForPlayer(gamecode, playerName, points) {
     });
 }
 
-
-
-export function calculatePointsForAnswer(answer, game){
-  if(game.gameTemplate.allQuestions[game.currentQuestion] && answer){
-    if(answer.choosenAnswer == game.gameTemplate.allQuestions[game.currentQuestion].correctAnswer && game.currentQuestion == answer.questionNumber){
-      const pointsForSecond = Math.round(
-        1000 / game.gameTemplate.questionTime
-      );
-      const points = 1000 - pointsForSecond * answer.sendingTime
-      return points
+export function calculatePointsForAnswer(answer, game, bonuses) {
+  if (game.gameTemplate.allQuestions[game.currentQuestion] && answer) {
+    if (
+      answer.choosenAnswer ==
+        game.gameTemplate.allQuestions[game.currentQuestion].correctAnswer &&
+      game.currentQuestion == answer.questionNumber
+    ) {
+      const pointsForSecond = Math.round(1000 / game.gameTemplate.questionTime);
+      let pointsMultiplier = 1;
+      if(bonuses){
+        bonuses.forEach((bonus) => {
+          if (bonus == "DoubleNext") {
+            pointsMultiplier *= 2;
+          }
+        });
+      }
+      const points = (1000 - pointsForSecond * answer.sendingTime) * pointsMultiplier
+      return points;
     }
   }
-  return 0
+  return 0;
 }
 
-
-
-
-
-
-
-export const setDataInDB = async (
-  gamecode,
-  data,
-  actionType,
-  playerId
-) => {
+export const setDataInDB = async (gamecode, data, actionType, playerId) => {
   if (actionType == "game") {
     await gamesRef.child(gamecode).set(data);
   } else if (actionType == "currentQuestion") {
@@ -133,8 +130,8 @@ export const setDataInDB = async (
     await gamesRef.child(gamecode).child("winners").set(data);
   } else if (actionType == "hostConnection") {
     await gamesRef.child(gamecode).child("hostConnection").set(data);
-  }else if(actionType == 'hostId'){
-    await gamesRef.child(gamecode).child('hostId').set(data)
+  } else if (actionType == "hostId") {
+    await gamesRef.child(gamecode).child("hostId").set(data);
   }
 };
 
@@ -160,11 +157,7 @@ export const fetchData = async (
   }
 };
 
-async function chooseTypeOnce(
-  actionType,
-  gamecode,
-  playerId
-) {
+async function chooseTypeOnce(actionType, gamecode, playerId) {
   if (actionType == "currentQuestion") {
     return await gamesRef
       .child(gamecode)
@@ -217,7 +210,7 @@ async function chooseTypeOnce(
     return await gamesRef.child(`${gamecode}/hostConnection`).once("value");
   } else if (actionType == "hostShowing") {
     return await gamesRef.child(gamecode).child("hostShowing").once("value");
-  }else if(actionType == 'hostId'){
-    return await gamesRef.child(gamecode).child('hostId').once(data)
+  } else if (actionType == "hostId") {
+    return await gamesRef.child(gamecode).child("hostId").once(data);
   }
 }

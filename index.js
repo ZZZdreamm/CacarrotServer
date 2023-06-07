@@ -15,6 +15,7 @@ import { Server } from "socket.io";
 import { loginInDB, registerInDb } from "./Firebase/Authentication.js";
 import { getPlayer } from "./Utilities/PlayerGet.js";
 import { timers } from "./Utilities/Timer.js";
+import { useBonus } from "./Utilities/GameFunctions.js";
 
 const app = express();
 
@@ -112,6 +113,7 @@ io.on("connection", (socket) => {
       shownComponent: "answers",
       answers:[]
     });
+
     socket.emit(`joined/${gamecode}/${data.socketId}`, {
       game: game,
       playerId: playerId,
@@ -128,14 +130,19 @@ io.on("connection", (socket) => {
     const player = getPlayer(game, data.playerName)
     let pointsForAnswer = 0
     if(data.answer){
-      pointsForAnswer = calculatePointsForAnswer(data.answer, game);
+      pointsForAnswer = calculatePointsForAnswer(data.answer, game, data.bonuses);
       data.answer.pointsFor = pointsForAnswer
       await gamesRef.child(gamecode).child('players').child(`${player.id}`).child('answers').child(`${data.answer.questionNumber}`).set(data.answer)
+      await gamesRef.child(gamecode).child('players').child(`${player.id}`).child('activeBonuses').set(null)
     }
     const prevPoints = player.points;
     const wholePoints = prevPoints + pointsForAnswer;
     setPointsForPlayer(gamecode, data.playerName, wholePoints);
   });
+
+  socket.on('used-bonus', async (data) => {
+    useBonus(game, data.bonusName, data.playerName, data.enemyName)
+  })
 
   socket.on("disconnect", () => {
     if (host == socket.id) {

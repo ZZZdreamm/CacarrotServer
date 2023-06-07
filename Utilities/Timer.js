@@ -20,13 +20,13 @@ export async function timer(time, game, timeType) {
 }
 
 export async function timers(game) {
-  gamesRef.child(game.gamecode).on("value", (snapshot) => {
+  var thisGameRef = gamesRef.child(game.gamecode)
+  var listener = thisGameRef.on("value", (snapshot) => {
     const gameVal = snapshot.val();
     if (gameVal) {
       game = gameVal;
     }
   });
-
   await timer(3, game, "startingTime");
   await timer(game.gameTemplate.questionTime, game, "time");
   game = {
@@ -54,6 +54,8 @@ export async function timers(game) {
       .child(game.gamecode)
       .child("currentQuestion")
       .set(game.currentQuestion);
+      
+    thisGameRef.off('value', listener)
     timers(game);
   }
 }
