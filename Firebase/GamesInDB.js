@@ -67,7 +67,7 @@ export async function setPointsForPlayer(gamecode, playerName, points) {
 
 export function calculatePointsForAnswer(answer, game){
   if(answer.choosenAnswer == game.gameTemplate.allQuestions[game.currentQuestion].correctAnswer && game.currentQuestion == answer.questionNumber){
-    const pointsForSecond = 1000 - Math.round(
+    const pointsForSecond = Math.round(
       1000 / game.gameTemplate.questionTime
     );
     const points = 1000 - pointsForSecond * answer.sendingTime

@@ -115,7 +115,7 @@ io.on("connection", (socket) => {
 
   socket.on("start-game", async () => {
     await setDataInDB(gamecode, "started", "gameStarted");
-    timers(game.gameTemplate.questionTime, game);
+    timers(game);
   });
 
   socket.on(`send-answer`, (data) => {
