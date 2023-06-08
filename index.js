@@ -78,20 +78,24 @@ io.on("connection", (socket) => {
   let host = "";
 
   socket.on('host-reconnect', (data) => {
-    gamecode = data.code;
-    host = data.hostId;
-    setDataInDB(gamecode, true, "hostConnection");
+    if(data.code){
+      gamecode = data.code;
+      host = data.hostId;
+      setDataInDB(gamecode, true, "hostConnection");
+    }
   })
 
   socket.on("host", (data) => {
-    gamecode = data.code;
-    host = data.hostId;
-    gamesRef.child(gamecode).on("value", (snapshot) => {
-      const gameVal = snapshot.val();
-      if (gameVal) {
-        game = gameVal;
-      }
-    });
+    if(data.code){
+      gamecode = data.code;
+      host = data.hostId;
+      gamesRef.child(gamecode).on("value", (snapshot) => {
+        const gameVal = snapshot.val();
+        if (gameVal) {
+          game = gameVal;
+        }
+      });
+    }
   });
 
   socket.on("gamecode", (code) => {
@@ -105,43 +109,51 @@ io.on("connection", (socket) => {
   });
 
   socket.on(`player-join`, async (data) => {
-    game = await getGame(gamecode);
-    const playerId = await joinGame(gamecode, {
-      id: 0,
-      name: data.playerName,
-      points: 0,
-      shownComponent: "answers",
-      answers:[]
-    });
+    if(gamecode){
+      game = await getGame(gamecode);
+      const playerId = await joinGame(gamecode, {
+        id: 0,
+        name: data.playerName,
+        points: 0,
+        shownComponent: "answers",
+        answers:[]
+      });
 
-    socket.emit(`joined/${gamecode}/${data.socketId}`, {
-      game: game,
-      playerId: playerId,
-      playerName: data.playerName,
-    });
+      socket.emit(`joined/${gamecode}/${data.socketId}`, {
+        game: game,
+        playerId: playerId,
+        playerName: data.playerName,
+      });
+    }
   });
 
   socket.on("start-game", async () => {
-    await setDataInDB(gamecode, "started", "gameStarted");
-    timers(game);
+    if(gamecode){
+      await setDataInDB(gamecode, "started", "gameStarted");
+      timers(game);
+    }
   });
 
   socket.on(`send-answer`, async (data) => {
-    const player = getPlayer(game, data.playerName)
-    let pointsForAnswer = 0
-    if(data.answer){
-      pointsForAnswer = calculatePointsForAnswer(data.answer, game, data.bonuses);
-      data.answer.pointsFor = pointsForAnswer
-      await gamesRef.child(gamecode).child('players').child(`${player.id}`).child('answers').child(`${data.answer.questionNumber}`).set(data.answer)
-      await gamesRef.child(gamecode).child('players').child(`${player.id}`).child('activeBonuses').set(null)
+    if(gamecode){
+      const player = getPlayer(game, data.playerName)
+      let pointsForAnswer = 0
+      if(data.answer){
+        pointsForAnswer = calculatePointsForAnswer(data.answer, game, data.bonuses);
+        data.answer.pointsFor = pointsForAnswer
+        await gamesRef.child(gamecode).child('players').child(`${player.id}`).child('answers').child(`${data.answer.questionNumber}`).set(data.answer)
+        await gamesRef.child(gamecode).child('players').child(`${player.id}`).child('activeBonuses').set(null)
+      }
+      const prevPoints = player.points;
+      const wholePoints = prevPoints + pointsForAnswer;
+      setPointsForPlayer(gamecode, data.playerName, wholePoints);
     }
-    const prevPoints = player.points;
-    const wholePoints = prevPoints + pointsForAnswer;
-    setPointsForPlayer(gamecode, data.playerName, wholePoints);
   });
 
   socket.on('used-bonus', async (data) => {
-    useBonus(game, data.bonusName, data.playerName, data.enemyName)
+    if(gamecode){
+      useBonus(game, data.bonusName, data.playerName, data.enemyName)
+    }
   })
 
   socket.on("disconnect", () => {
