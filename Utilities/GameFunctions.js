@@ -1,4 +1,4 @@
-import { gamesRef } from "../Firebase/FirebaseConfig.js";
+import { gamesRef } from "../FirebaseCacarrot/FirebaseConfig.js";
 
 export function getWinners(players) {
   let sortedPlayers = players.sort(

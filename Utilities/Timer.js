@@ -1,5 +1,5 @@
-import { gamesRef } from "../Firebase/FirebaseConfig.js";
-import { setDataInDB } from "../Firebase/GamesInDB.js";
+import { gamesRef } from "../FirebaseCacarrot/FirebaseConfig.js";
+import { setDataInDB } from "../FirebaseCacarrot/GamesInDB.js";
 import { getWinners } from "./GameFunctions.js";
 
 export async function timer(time, game, timeType) {
@@ -54,7 +54,7 @@ export async function timers(game) {
       .child(game.gamecode)
       .child("currentQuestion")
       .set(game.currentQuestion);
-      
+
     thisGameRef.off('value', listener)
     timers(game);
   }

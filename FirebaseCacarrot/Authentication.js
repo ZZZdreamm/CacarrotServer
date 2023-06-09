@@ -6,8 +6,6 @@ import { randomUUID } from "crypto";
 export async function loginInDB(credentials){
     const snapshot = await dbRef.child('usersAccounts').once('value');
     const userAccounts = snapshot.val();
-
-
     let thisUser = {id:'', email:''}
     if(userAccounts){
         Object.values(userAccounts).forEach((user)=>{

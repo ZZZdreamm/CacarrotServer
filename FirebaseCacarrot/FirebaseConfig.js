@@ -21,6 +21,5 @@ export const usersRef = dbRef.child('users')
 export const gamesRef = dbRef.child('games')
 
 
-export const firestore = firebase.firestore()
 
 

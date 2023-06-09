@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import http from "http";
 import createJWTToken from "./JWTToken.js";
-import { dbRef, gamesRef } from "./Firebase/FirebaseConfig.js";
+import { dbRef, gamesRef } from "./FirebaseCacarrot/FirebaseConfig.js";
 import {
   calculatePointsForAnswer,
   getGame,
@@ -10,14 +10,16 @@ import {
   setDataInDB,
   setPointsForPlayer,
   getGameOn,
-} from "./Firebase/GamesInDB.js";
+} from "./FirebaseCacarrot/GamesInDB.js";
 import { Server } from "socket.io";
-import { loginInDB, registerInDb } from "./Firebase/Authentication.js";
+import { loginInDB, registerInDb } from "./FirebaseCacarrot/Authentication.js";
 import { getPlayer } from "./Utilities/PlayerGet.js";
 import { timers } from "./Utilities/Timer.js";
 import { useBonus } from "./Utilities/GameFunctions.js";
+import { loginInSocial, registerInSocial } from "./FirebaseSocial/Authentication.js";
+import { getUser, postPost, searchUsers } from "./FirebaseSocial/SocialFunctions.js";
 
-const app = express();
+export const app = express();
 
 app.use(express.static("public"));
 app.use(cors({ origin: true }));
@@ -118,7 +120,7 @@ io.on("connection", (socket) => {
         shownComponent: "answers",
         answers:[]
       });
-
+      console.log(`joined/${gamecode}/${data.socketId}`)
       socket.emit(`joined/${gamecode}/${data.socketId}`, {
         game: game,
         playerId: playerId,
@@ -162,6 +164,93 @@ io.on("connection", (socket) => {
     }
   });
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+app.post("/social/login", async (req, res) => {
+  const { credentials } = req.body;
+  const user = await loginInSocial(credentials);
+  if (user.id) {
+    const token = createJWTToken(credentials);
+    res.send({ token: token, user: user });
+  } else {
+    res.status(400).send(new Error("Invalid login or password"));
+  }
+});
+
+app.post("/social/register", async (req, res) => {
+  const { credentials } = req.body;
+  const user = await registerInSocial(credentials);
+  if (user.id) {
+    const token = createJWTToken(credentials);
+    res.send({ token: token, user: user });
+  } else {
+    res.status(400).send(new Error("There is user with that name"));
+  }
+});
+
+app.post("/social/search-users", async (req, res) => {
+  const {name} = req.body
+  const matchingUsers = await searchUsers(name)
+  res.send({users:matchingUsers})
+})
+
+
+app.post("/social/get-user", async (req, res) => {
+  const {name} = req.body
+  const user = await getUser(name)
+  res.send(user)
+})
+
+
+app.post("/social/post-post", async (req, res) => {
+  const post = req.body
+  postPost(post)
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 server.listen(port, async () => {
 });
