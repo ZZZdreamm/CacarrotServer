@@ -407,7 +407,7 @@ io.on("connection", (socket) => {
   })
 
   socket.on('leave-call', (data) => {
-    socket.to(data.friendId).emit('user-left')
+    socket.broadcast.emit(`user-left/${data.friendId}`)
   })
 });
 
