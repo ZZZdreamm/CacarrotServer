@@ -383,43 +383,9 @@ io.on("connection", (socket) => {
   });
 
 
-
-
-
-  // socket.on('disconnect', ()=>{
-  //   socket.broadcast.emit("call-ended")
-  // })
-
-  // socket.on('send-user-id', (data) => {
-  //   socket.broadcast.emit(`friend-id/${data.friendId}`, {callId:data.callId})
-  // })
-
-
-  // socket.on('call-for-answer', (data) => {
-  //   socket.broadcast.emit('signal-for-answer')
-  // })
-
-  // socket.on('call-user', (data)=>{
-  //   io.to(data.userToCall).emit("call-user", {signal:data.signalData, from:data.from, name:data.name})
-  // })
-
-  // socket.on('answer-call', (data)=> {
-  //   io.to(data.to).emit("call-accepted", data.signal)
-  // })
-
-
-
-
-
-
-
-
-
   let userId = ''
   let roomId = ''
   let who = ''
-
-  // socket.emit('me', socket.id)
 
 
   socket.on('leave-call', (data) => {
@@ -448,52 +414,40 @@ io.on("connection", (socket) => {
     roomId = data.roomId
     who = data.who
     if(data.who == 'caller'){
-      console.log('caller')
+      // console.log('caller')
       socket.join(`${data.roomId}`)
       const myRoom = rooms.get(`${data.roomId}`)
       if(myRoom){
-        console.log('caller joined')
+        // console.log('caller joined')
         myRoom.push(data.myId)
       }
     }else{
-      console.log('receiver')
+      // console.log('receiver')
       socket.join(`${data.roomId}`)
       const friendRoom = rooms.get(`${data.roomId}`)
       if(friendRoom){
-        console.log('friend joined')
+        // console.log('friend joined')
         friendRoom.push(data.myId)
       }
     }
 
     const myRoom = rooms.get(`${data.roomId}`)
-    console.log(myRoom)
-    // const friendRoom = rooms.get(`${data.friendId}/${data.roomId}`)
     if(myRoom && myRoom.length > 1){
       io.in(`${data.roomId}`).emit(`start-peering`, { })
     }
-    // else if(friendRoom && friendRoom.length > 1){
-    //   io.in(`${data.roomId}`).emit(`start-peering`, {})
-    // }
   });
 
 
   socket.on('message', (message) => {
-    // const data = JSON.parse(message);
-    // console.log(data)
-    // console.log(message)
+
 
     switch (message.type) {
       case 'video-offer':
-        // console.log(message.target)
         socket.to(message.target).emit('message', message)
-        // sendToOneUser(message.target, message)
         break;
 
       case 'video-answer':
-        // console.log('video answer')
         socket.to(message.target).emit('message', message)
-
-        // sendToOneUser(message.target, message)
         break;
       case 'iceCandidate':
         socket.to(message.target).emit('message', message)
@@ -502,16 +456,13 @@ io.on("connection", (socket) => {
         break;
     }
   });
-  // socket.on('close', () => {
-  //   handleLogout(socket);
-  // });
 });
 
 
 server.listen(port, async () => {});
 
 
-async function sendToOneUser(targetRoom, msgString, socket) {
-  console.log(targetRoom)
-  socket.to(targetRoom).send(msgString)
-}
+// async function sendToOneUser(targetRoom, msgString, socket) {
+//   console.log(targetRoom)
+//   socket.to(targetRoom).send(msgString)
+// }
