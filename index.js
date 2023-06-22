@@ -366,6 +366,8 @@ app.post("/social/get-chat-messages", async (req, res) => {
 
 
 
+const users = new Map();
+const rooms = new Map()
 
 io.on("connection", (socket) => {
   socket.on("send-message", async (message) => {
@@ -381,19 +383,18 @@ io.on("connection", (socket) => {
   });
 
 
-  socket.emit('me', socket.id)
 
-  socket.on('disconnect', ()=>{
-    socket.broadcast.emit("call-ended")
-  })
+
+
+  // socket.on('disconnect', ()=>{
+  //   socket.broadcast.emit("call-ended")
+  // })
 
   socket.on('send-user-id', (data) => {
     socket.broadcast.emit(`friend-id/${data.friendId}`, {callId:data.callId})
   })
 
-  socket.on("create-join-room", async (data) => {
-    socket.broadcast.emit(`calling/${data.friendId}`, data.userId);
-  });
+
   socket.on('call-for-answer', (data) => {
     socket.broadcast.emit('signal-for-answer')
   })
@@ -406,9 +407,111 @@ io.on("connection", (socket) => {
     io.to(data.to).emit("call-accepted", data.signal)
   })
 
+
+
+
+
+
+
+
+
+  let userId = ''
+  let roomId = ''
+  let who = ''
+
+  // socket.emit('me', socket.id)
+
+
   socket.on('leave-call', (data) => {
-    socket.broadcast.emit(`user-left/${data.friendId}`)
+    socket.to(data.target).emit('user-left', data.userId)
   })
+
+  users.set(socket.id, socket);
+
+  socket.on('disconnect', () => {
+    users.delete(socket.id);
+    let userRoom = rooms.get(`${roomId}`)
+    if(!userRoom) return
+    userRoom = userRoom.filter((user) => user !== userId)
+    rooms.set(`${roomId}`, userRoom)
+  });
+
+  socket.on("create-join-room", async (data) => {
+    // socket.join(`${data.myId}/${data.roomId}`)
+    rooms.set(`${data.roomId}`, [])
+    socket.broadcast.emit(`calling/${data.friendId}`, {userId:data.myId, roomId: data.roomId});
+  });
+
+
+  socket.on('join-call', (data) => {
+    userId = data.myId
+    roomId = data.roomId
+    who = data.who
+    if(data.who == 'caller'){
+      console.log('caller')
+      socket.join(`${data.roomId}`)
+      const myRoom = rooms.get(`${data.roomId}`)
+      if(myRoom){
+        console.log('caller joined')
+        myRoom.push(data.myId)
+      }
+    }else{
+      console.log('receiver')
+      socket.join(`${data.roomId}`)
+      const friendRoom = rooms.get(`${data.roomId}`)
+      if(friendRoom){
+        console.log('friend joined')
+        friendRoom.push(data.myId)
+      }
+    }
+
+    const myRoom = rooms.get(`${data.roomId}`)
+    console.log(myRoom)
+    // const friendRoom = rooms.get(`${data.friendId}/${data.roomId}`)
+    if(myRoom && myRoom.length > 1){
+      io.in(`${data.roomId}`).emit(`start-peering`, { })
+    }
+    // else if(friendRoom && friendRoom.length > 1){
+    //   io.in(`${data.roomId}`).emit(`start-peering`, {})
+    // }
+  });
+
+
+  socket.on('message', (message) => {
+    // const data = JSON.parse(message);
+    // console.log(data)
+    // console.log(message)
+
+    switch (message.type) {
+      case 'video-offer':
+        // console.log(message.target)
+        socket.to(message.target).emit('message', message)
+        // sendToOneUser(message.target, message)
+        break;
+
+      case 'video-answer':
+        // console.log('video answer')
+        socket.to(message.target).emit('message', message)
+
+        // sendToOneUser(message.target, message)
+        break;
+      case 'iceCandidate':
+        socket.to(message.target).emit('message', message)
+        break;
+      default:
+        break;
+    }
+  });
+  // socket.on('close', () => {
+  //   handleLogout(socket);
+  // });
 });
 
+
 server.listen(port, async () => {});
+
+
+async function sendToOneUser(targetRoom, msgString, socket) {
+  console.log(targetRoom)
+  socket.to(targetRoom).send(msgString)
+}
