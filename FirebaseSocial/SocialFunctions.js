@@ -346,7 +346,7 @@ export async function getUserPosts(name, numberOfPosts) {
 }
 
 export async function sendMessage(message) {
-  if (!message.MediaFile && !message.TextContent) {
+  if (!message.MediaFile && !message.TextContent && !message.VoiceFile) {
     const likeURL = `https://firebasestorage.googleapis.com/v0/b/facebugserver.appspot.com/o/usefulImages%2Flike.png?alt=media&token=5c145cfb-8601-4206-9142-5d79fbb3d8c0/like.png`
     message = {
       ...message,

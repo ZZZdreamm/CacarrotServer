@@ -390,22 +390,22 @@ io.on("connection", (socket) => {
   //   socket.broadcast.emit("call-ended")
   // })
 
-  socket.on('send-user-id', (data) => {
-    socket.broadcast.emit(`friend-id/${data.friendId}`, {callId:data.callId})
-  })
+  // socket.on('send-user-id', (data) => {
+  //   socket.broadcast.emit(`friend-id/${data.friendId}`, {callId:data.callId})
+  // })
 
 
-  socket.on('call-for-answer', (data) => {
-    socket.broadcast.emit('signal-for-answer')
-  })
+  // socket.on('call-for-answer', (data) => {
+  //   socket.broadcast.emit('signal-for-answer')
+  // })
 
-  socket.on('call-user', (data)=>{
-    io.to(data.userToCall).emit("call-user", {signal:data.signalData, from:data.from, name:data.name})
-  })
+  // socket.on('call-user', (data)=>{
+  //   io.to(data.userToCall).emit("call-user", {signal:data.signalData, from:data.from, name:data.name})
+  // })
 
-  socket.on('answer-call', (data)=> {
-    io.to(data.to).emit("call-accepted", data.signal)
-  })
+  // socket.on('answer-call', (data)=> {
+  //   io.to(data.to).emit("call-accepted", data.signal)
+  // })
 
 
 
