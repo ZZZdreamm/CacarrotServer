@@ -51,10 +51,10 @@ export async function getUser(id) {
 export async function postPost(post) {
   const doc = await postsFireStore.add({
     AutorName: post.AutorName,
-    AmountOfComments: post.AmountOfComments,
-    AmountOfLikes: post.AmountOfLikes,
+    AmountOfComments: post.AmountOfComments || 0,
+    AmountOfLikes: post.AmountOfLikes || 0,
     TextContent: post.TextContent || "",
-    MediaFile: post.MediaFile || "",
+    MediaFiles: post.MediaFiles || "",
     Date: post.Date,
   });
   const data = (await doc.get()).data();
@@ -346,11 +346,11 @@ export async function getUserPosts(name, numberOfPosts) {
 }
 
 export async function sendMessage(message) {
-  if (!message.MediaFile && !message.TextContent && !message.VoiceFile) {
+  if (message.MediaFiles.length <= 0 && !message.TextContent && !message.VoiceFile) {
     const likeURL = `https://firebasestorage.googleapis.com/v0/b/facebugserver.appspot.com/o/usefulImages%2Flike.png?alt=media&token=5c145cfb-8601-4206-9142-5d79fbb3d8c0/like.png`
     message = {
       ...message,
-      MediaFile: likeURL,
+      MediaFiles: [likeURL],
     };
   }
   let createdMessage;
