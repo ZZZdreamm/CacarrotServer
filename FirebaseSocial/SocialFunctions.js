@@ -188,8 +188,14 @@ export async function getComments(PostId, numberOfComments) {
 export async function sendFriendRequest(UserId, FriendId) {
   const userRef = usersFireStore.doc(UserId).collection("SentFriendRequests");
   const friendRef = usersFireStore.doc(FriendId).collection("FriendRequests");
-  await userRef.doc(FriendId).set({});
-  await friendRef.doc(UserId).set({});
+  userRef.doc(FriendId).set({});
+  friendRef.doc(UserId).set({});
+  const friendDoc = await usersFireStore.doc(FriendId).get();
+  const friend = {
+    ...friendDoc.data(),
+    Id: friendDoc.id,
+  }
+  return friend
 }
 
 export async function AcceptFriendRequest(UserId, FriendId) {
@@ -216,7 +222,6 @@ export async function AcceptFriendRequest(UserId, FriendId) {
 export async function removeFriendRequest(UserId, FriendId) {
   const userRef = usersFireStore.doc(UserId).collection("SentFriendRequests");
   const friendRef = usersFireStore.doc(FriendId).collection("FriendRequests");
-  console.log(UserId);
   await userRef.doc(FriendId).delete();
   await friendRef.doc(UserId).delete();
   return { Id: FriendId };
@@ -305,8 +310,18 @@ export async function checkIfInFriends(UserId, FriendId) {
       .doc(FriendId)
       .get()
   ).exists;
+  const pendingRequest = (
+    await usersFireStore
+      .doc(UserId)
+      .collection("FriendRequests")
+      .doc(FriendId)
+      .get()
+  ).exists;
   if (inFriendRequests) {
     return "inFriendRequests";
+  }
+  if(pendingRequest){
+    return "pendingRequest"
   }
   return "stranger";
 }

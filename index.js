@@ -293,8 +293,8 @@ app.post("/social/get-comments", async (req, res) => {
 
 app.post("/social/send-friend-request", async (req, res) => {
   const { userId, friendId } = req.body;
-  await sendFriendRequest(userId, friendId);
-  res.status(200);
+  const friend = await sendFriendRequest(userId, friendId);
+  res.send(friend);
 });
 
 app.post("/social/accept-friend-request", async (req, res) => {
