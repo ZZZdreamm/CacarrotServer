@@ -39,6 +39,7 @@ import {
   removeFriend,
   removeFriendRequest,
   removeLike,
+  searchFriends,
   searchUsers,
   sendFriendRequest,
   sendMessage,
@@ -361,6 +362,14 @@ app.post("/social/get-chat-messages", async (req, res) => {
   const { userId, friendId, numberOfMessages } = req.body;
   const messages = await getChatMessages(userId, friendId, numberOfMessages);
   res.send(messages);
+});
+
+
+app.post("/social/search-friends", async (req, res) => {
+  const { userId, searchQuery } = req.body;
+  const friends = await getFriends(userId);
+  const searchedFriends = searchFriends(friends, searchQuery)
+  res.send(searchedFriends);
 });
 
 

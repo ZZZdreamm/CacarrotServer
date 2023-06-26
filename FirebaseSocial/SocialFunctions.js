@@ -414,3 +414,12 @@ export async function getChatMessages(UserId, FriendId, NumberOfMessages) {
 
   return messages;
 }
+
+
+
+export function searchFriends(friends, searchName){
+  const filteredFriends = friends.filter((friend) => {
+    return friend.Email.toLowerCase().includes(searchName.toLowerCase());
+  });
+  return filteredFriends;
+}
