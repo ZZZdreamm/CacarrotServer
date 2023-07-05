@@ -426,7 +426,7 @@ export function searchFriends(friends, searchName) {
   return filteredFriends;
 }
 
-export async function removeMessage(UserId, FriendId, MessageId, date) {
+export async function removeMessage(UserId, FriendId, MessageId) {
   await usersFireStore
     .doc(UserId)
     .collection("Messages")
