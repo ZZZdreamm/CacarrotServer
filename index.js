@@ -270,8 +270,13 @@ app.put("/social/like-post-remove", async (req, res) => {
 
 app.post("/social/user-liked-post", async (req, res) => {
   const { postId, userId } = req.body;
-  const liked = await ifUserLiked(postId, userId);
-  res.send(liked);
+  try{
+    const liked = await ifUserLiked(postId, userId);
+    res.send(liked);
+  }catch(e){
+    res.send(e);
+  }
+
 });
 
 app.post("/social/put-comment", async (req, res) => {
