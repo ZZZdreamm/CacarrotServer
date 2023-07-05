@@ -43,6 +43,7 @@ import {
   searchUsers,
   sendFriendRequest,
   sendMessage,
+  removeMessage,
 } from "./FirebaseSocial/SocialFunctions.js";
 import { roomsFirestore } from "./FirebaseSocial/FirebaseConfig.js";
 
@@ -270,13 +271,12 @@ app.put("/social/like-post-remove", async (req, res) => {
 
 app.post("/social/user-liked-post", async (req, res) => {
   const { postId, userId } = req.body;
-  try{
+  try {
     const liked = await ifUserLiked(postId, userId);
     res.send(liked);
-  }catch(e){
+  } catch (e) {
     res.send(e);
   }
-
 });
 
 app.post("/social/put-comment", async (req, res) => {
@@ -369,19 +369,38 @@ app.post("/social/get-chat-messages", async (req, res) => {
   res.send(messages);
 });
 
-
 app.post("/social/search-friends", async (req, res) => {
   const { userId, searchQuery } = req.body;
   const friends = await getFriends(userId);
-  const searchedFriends = searchFriends(friends, searchQuery)
+  const searchedFriends = searchFriends(friends, searchQuery);
   res.send(searchedFriends);
+});
+
+app.post("/social/remove-message", async (req, res) => {
+  const { userId, friendId, messageId } = req.body;
+  await removeMessage(userId, friendId, messageId);
+  res.status(200);
 });
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const users = new Map();
-const rooms = new Map()
+const rooms = new Map();
 
 io.on("connection", (socket) => {
   socket.on("send-message", async (message) => {
@@ -396,75 +415,72 @@ io.on("connection", (socket) => {
     );
   });
 
+  let userId = "";
+  let roomId = "";
+  let who = "";
 
-  let userId = ''
-  let roomId = ''
-  let who = ''
-
-
-  socket.on('leave-call', (data) => {
-    socket.to(data.target).emit('user-left', data.userId)
-  })
+  socket.on("leave-call", (data) => {
+    socket.to(data.target).emit("user-left", data.userId);
+  });
 
   users.set(socket.id, socket);
 
-  socket.on('disconnect', () => {
+  socket.on("disconnect", () => {
     users.delete(socket.id);
-    let userRoom = rooms.get(`${roomId}`)
-    if(!userRoom) return
-    userRoom = userRoom.filter((user) => user !== userId)
-    rooms.set(`${roomId}`, userRoom)
+    let userRoom = rooms.get(`${roomId}`);
+    if (!userRoom) return;
+    userRoom = userRoom.filter((user) => user !== userId);
+    rooms.set(`${roomId}`, userRoom);
   });
 
   socket.on("create-join-room", async (data) => {
     // socket.join(`${data.myId}/${data.roomId}`)
-    rooms.set(`${data.roomId}`, [])
-    socket.broadcast.emit(`calling/${data.friendId}`, {userId:data.myId, roomId: data.roomId});
+    rooms.set(`${data.roomId}`, []);
+    socket.broadcast.emit(`calling/${data.friendId}`, {
+      userId: data.myId,
+      roomId: data.roomId,
+    });
   });
 
-
-  socket.on('join-call', (data) => {
-    userId = data.myId
-    roomId = data.roomId
-    who = data.who
-    if(data.who == 'caller'){
+  socket.on("join-call", (data) => {
+    userId = data.myId;
+    roomId = data.roomId;
+    who = data.who;
+    if (data.who == "caller") {
       // console.log('caller')
-      socket.join(`${data.roomId}`)
-      const myRoom = rooms.get(`${data.roomId}`)
-      if(myRoom){
+      socket.join(`${data.roomId}`);
+      const myRoom = rooms.get(`${data.roomId}`);
+      if (myRoom) {
         // console.log('caller joined')
-        myRoom.push(data.myId)
+        myRoom.push(data.myId);
       }
-    }else{
+    } else {
       // console.log('receiver')
-      socket.join(`${data.roomId}`)
-      const friendRoom = rooms.get(`${data.roomId}`)
-      if(friendRoom){
+      socket.join(`${data.roomId}`);
+      const friendRoom = rooms.get(`${data.roomId}`);
+      if (friendRoom) {
         // console.log('friend joined')
-        friendRoom.push(data.myId)
+        friendRoom.push(data.myId);
       }
     }
 
-    const myRoom = rooms.get(`${data.roomId}`)
-    if(myRoom && myRoom.length > 1){
-      io.in(`${data.roomId}`).emit(`start-peering`, { })
+    const myRoom = rooms.get(`${data.roomId}`);
+    if (myRoom && myRoom.length > 1) {
+      io.in(`${data.roomId}`).emit(`start-peering`, {});
     }
   });
 
-
-  socket.on('message', (message) => {
-
-
+  socket.on("message", (message) => {
     switch (message.type) {
-      case 'video-offer':
-        socket.to(message.target).emit('message', message)
+      case "video-offer":
+        socket.to(message.target).emit("message", message);
         break;
 
-      case 'video-answer':
-        socket.to(message.target).emit('message', message)
+      case "video-answer":
+        socket.to(message.target).emit("message", message);
         break;
-      case 'iceCandidate':
-        socket.to(message.target).emit('message', message)
+      case "iceCandidate":
+        socket.to(message.target).emit("message", message);
         break;
       default:
         break;
@@ -472,9 +488,7 @@ io.on("connection", (socket) => {
   });
 });
 
-
 server.listen(port, async () => {});
-
 
 // async function sendToOneUser(targetRoom, msgString, socket) {
 //   console.log(targetRoom)
