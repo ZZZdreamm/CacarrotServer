@@ -62,7 +62,7 @@ export async function postPost(post) {
   const newPost = {
     ...data,
     Id: doc.id,
-    AutorProfileImage: autorImage || ""
+    AutorProfileImage: autorImage || "",
   };
   return newPost;
 }
@@ -194,8 +194,8 @@ export async function sendFriendRequest(UserId, FriendId) {
   const friend = {
     ...friendDoc.data(),
     Id: friendDoc.id,
-  }
-  return friend
+  };
+  return friend;
 }
 
 export async function AcceptFriendRequest(UserId, FriendId) {
@@ -320,8 +320,8 @@ export async function checkIfInFriends(UserId, FriendId) {
   if (inFriendRequests) {
     return "inFriendRequests";
   }
-  if(pendingRequest){
-    return "pendingRequest"
+  if (pendingRequest) {
+    return "pendingRequest";
   }
   return "stranger";
 }
@@ -361,8 +361,12 @@ export async function getUserPosts(name, numberOfPosts) {
 }
 
 export async function sendMessage(message) {
-  if (message.MediaFiles.length <= 0 && !message.TextContent && !message.VoiceFile) {
-    const likeURL = `https://firebasestorage.googleapis.com/v0/b/facebugserver.appspot.com/o/usefulImages%2Flike.png?alt=media&token=5c145cfb-8601-4206-9142-5d79fbb3d8c0/like.png`
+  if (
+    message.MediaFiles.length <= 0 &&
+    !message.TextContent &&
+    !message.VoiceFile
+  ) {
+    const likeURL = `https://firebasestorage.googleapis.com/v0/b/facebugserver.appspot.com/o/usefulImages%2Flike.png?alt=media&token=5c145cfb-8601-4206-9142-5d79fbb3d8c0/like.png`;
     message = {
       ...message,
       MediaFiles: [likeURL],
@@ -386,7 +390,7 @@ export async function sendMessage(message) {
     .collection("Messages")
     .doc(message.SenderId)
     .collection("Messages")
-    .add(message);
+    .doc(createdMessage.Id).set(message);
   return createdMessage;
 }
 
@@ -415,23 +419,26 @@ export async function getChatMessages(UserId, FriendId, NumberOfMessages) {
   return messages;
 }
 
-
-
-export function searchFriends(friends, searchName){
+export function searchFriends(friends, searchName) {
   const filteredFriends = friends.filter((friend) => {
     return friend.Email.toLowerCase().includes(searchName.toLowerCase());
   });
   return filteredFriends;
 }
 
-
-
-export async function removeMessage(UserId, FriendId, MessageId){
+export async function removeMessage(UserId, FriendId, MessageId, date) {
   await usersFireStore
-  .doc(UserId)
-  .collection("Messages")
-  .doc(FriendId)
-  .collection("Messages")
-  .doc(MessageId)
-  .delete();
+    .doc(UserId)
+    .collection("Messages")
+    .doc(FriendId)
+    .collection("Messages")
+    .doc(MessageId)
+    .delete();
+  await usersFireStore
+    .doc(FriendId)
+    .collection("Messages")
+    .doc(UserId)
+    .collection("Messages")
+    .doc(MessageId)
+    .delete();
 }

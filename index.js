@@ -377,8 +377,8 @@ app.post("/social/search-friends", async (req, res) => {
 });
 
 app.post("/social/remove-message", async (req, res) => {
-  const { userId, friendId, messageId } = req.body;
-  await removeMessage(userId, friendId, messageId);
+  const { userId, friendId, messageId, date } = req.body;
+  await removeMessage(userId, friendId, messageId, date);
   res.status(200);
 });
 
