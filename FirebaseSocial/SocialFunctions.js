@@ -13,7 +13,7 @@ export async function searchUsers(query) {
   let users = [];
   snapshot.forEach((shot) => {
     const user = shot.data();
-    if (user.Email.includes(query)) {
+    if (user.Email.toLowerCase().includes(query.toLowerCase())) {
       users.push({
         Id: shot.id,
         Email: user.Email,
