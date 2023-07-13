@@ -1,4 +1,5 @@
 import NewsAPI from "newsapi";
+import { defaultArgs } from "puppeteer";
 
 export async function getNews(searchQuery) {
   const apiKey = "1f1790b27875460b9a3b23db3432160f";
@@ -24,3 +25,6 @@ export async function getNews(searchQuery) {
 
 }
 
+export default function removeHTMLTagsFromString(string) {
+  return string.replace(/<[^>]*>?/gm, '');
+}

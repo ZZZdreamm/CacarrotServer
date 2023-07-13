@@ -47,7 +47,7 @@ import {
 } from "./FirebaseSocial/SocialFunctions.js";
 import { roomsFirestore } from "./FirebaseSocial/FirebaseConfig.js";
 import * as puppeteer from "puppeteer";
-import { getNews } from "./News/NewsFunctions.js";
+import removeHTMLTagsFromString, { getNews } from "./News/NewsFunctions.js";
 
 export const app = express();
 
@@ -479,6 +479,7 @@ app.post("/news/search", async (req, res) => {
   // news.content = news.content.slice(0, 150);
   news.articles.forEach(article => {
     article.content = article.content.split("[")[0];
+    article.content = removeHTMLTagsFromString(article.content);
   });
   res.send(news.articles);
 });
