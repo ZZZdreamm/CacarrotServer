@@ -46,6 +46,8 @@ import {
   removeMessage,
 } from "./FirebaseSocial/SocialFunctions.js";
 import { roomsFirestore } from "./FirebaseSocial/FirebaseConfig.js";
+import * as puppeteer from "puppeteer";
+import { getNews } from "./News/NewsFunctions.js";
 
 export const app = express();
 
@@ -382,23 +384,6 @@ app.post("/social/remove-message", async (req, res) => {
   res.status(200);
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const users = new Map();
 const rooms = new Map();
 
@@ -486,6 +471,16 @@ io.on("connection", (socket) => {
         break;
     }
   });
+});
+
+app.post("/news/search", async (req, res) => {
+  const { searchQuery } = req.body;
+  const news = await getNews(searchQuery);
+  // news.content = news.content.slice(0, 150);
+  news.articles.forEach(article => {
+    article.content = article.content.split("[")[0];
+  });
+  res.send(news.articles);
 });
 
 server.listen(port, async () => {});
